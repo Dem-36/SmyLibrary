@@ -1,20 +1,19 @@
 ﻿//ワープホール:https://www.youtube.com/watch?v=w0znZIuvQ2I
-Shader "SmyCustom/Unlit/Graphics/PortalShader"
+Shader "SmyCustom/Graphics/PortalShader"
 {
     Properties
     {
-		_MaskTex("Mask Texture",2D)="white"{}
-		_TwirlAmount("Twirl Amount",Float)=9
-		_TwirlSpeed("Twirl Speed",Float)=3
-		_VolonoiScale("Scale",Float)=3
-		_VolonoiDistance("Distance",Range(0,1))=1
+		_MaskTex("Mask Texture",2D) = "white"{}
+		_TwirlAmount("Twirl Amount",Float) = 30
+		_TwirlSpeed("Twirl Speed",Float) = 0.5
+		_VolonoiScale("Scale",Float) = 22
+		_VolonoiDistance("Distance",Range(0,1)) = 1
 		[HDR]_EmissionColor("Emission Color",Color)=(1,1,1,1)
     }
     SubShader
     {
         Tags { "RenderType"="Transparent" "Opaque"="Transparent"}
 		Blend SrcAlpha OneMinusSrcAlpha
-		Cull Off
 
         Pass
         {
@@ -24,6 +23,7 @@ Shader "SmyCustom/Unlit/Graphics/PortalShader"
 
             #include "UnityCG.cginc"
 			#include"../cginc/SmyMethod.cginc"
+			#include"../cginc/SmyMethod_Noise.cginc"
 
             struct appdata
             {
@@ -55,16 +55,18 @@ Shader "SmyCustom/Unlit/Graphics/PortalShader"
 
             fixed4 frag (v2f i) : SV_Target
             {
-				fixed2 s = _Time.w*_TwirlSpeed;
+				fixed2 s = _Time.w * _TwirlSpeed;
 				fixed4 twirl;
 				Twirl(i.uv, float2(0.5, 0.5), _TwirlAmount, s, twirl.xy);
 				//Twirlの結果をUV座標として手渡す(ShaderGraph内ではEmission扱い)
-				fixed4 vol = VolonoiNoise(i.uv+twirl.xy, _VolonoiScale, _VolonoiDistance);
+				float vol;
+				float cell;
+				Voronoi_Float(i.uv + twirl.xy, _VolonoiScale, _VolonoiDistance, vol, cell);
 				//Emission
-				fixed4 emissiveCol = vol * _EmissionColor;
-				fixed4 tex = tex2D(_MaskTex, i.uv*_MaskTex_ST.xy + _MaskTex_ST.zw);
+				fixed4 emissiveCol = _EmissionColor * vol;
+				fixed4 tex = tex2D(_MaskTex, i.uv);
 				emissiveCol.a = emissiveCol.r;
-                return emissiveCol*tex;
+                return emissiveCol * tex;
             }
             ENDCG
         }

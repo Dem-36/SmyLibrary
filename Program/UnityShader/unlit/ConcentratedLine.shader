@@ -1,21 +1,24 @@
-﻿//集中線を表示するShader
-Shader "SmyCustom/Unlit/UI/ConcentratedLine"
+﻿Shader "SmyCustom/UI/ConcentratedLine"
 {
 	Properties
 	{
 		_Color("Color",Color) = (1,1,1,1)
 		_Center("Center",Vector) = (0.5,0.5,0,0)
-		_Scale("Noise Scale",Float) = 14.0
+		//線の数
+		_Scale("Noise Scale",Float) = 1
+		//線の長さ
 		_RadialScale("Radial Scale",Float) = 1
-		_LengthScale("Length Scale",Float) = 1
+		_LengthScale("Length Scale",Float) = 200
+		//回転速度
 		_RotateSpeed("RotateSpeed",Float) = 0
-		_NoisePower("Noise Power",Range(0.0,1.0)) = 1
+		//線の挙動
+		_NoisePower("Noise Power",Range(0.0,100.0)) = 0
     }
     SubShader
     {
 		Tags{"RenderType" = "Transparent" "Queue" = "Transparent"}
 		Blend SrcAlpha OneMinusSrcAlpha
-		Cull Off ZWrite Off ZTest Always
+		Cull Off
 		Pass
         {
             CGPROGRAM
@@ -23,8 +26,8 @@ Shader "SmyCustom/Unlit/UI/ConcentratedLine"
             #pragma fragment frag
 
             #include "UnityCG.cginc"
-			#include"../cginc/SmyMethod_Noise.cginc"
-			#include"../cginc/SmyMethod.cginc"
+			#include "../cginc/SmyMethod_Noise.cginc"
+			#include "../cginc/SmyMethod.cginc"
 
             struct appdata
             {

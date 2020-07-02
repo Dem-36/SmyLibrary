@@ -3,10 +3,10 @@
 
 float4x4 Translate(float3 t) {
 	return float4x4(
-		1, 0, 0, t.x,
-		0, 1, 0, t.y,
-		0, 0, 1, t.z,
-		0, 0, 0, 1
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		t.x, t.y, t.z, 1
 		);
 }
 

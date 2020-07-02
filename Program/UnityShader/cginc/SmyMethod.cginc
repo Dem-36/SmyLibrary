@@ -6,17 +6,6 @@ float3 WORLD_POSITION(float4 vertex){
     return mul(unity_ObjectToWorld,vertex);
 }
 
-//RimLightの計算
-float UnlitRimLight(float3 normal, float3 worldPos, float rimPower) {
-	//法線ベクトル正規化
-	float3 N = normalize(normal);
-	//頂点のワールド座標からカメラの位置のベクトルを求める
-	float3 L = normalize(worldPos.xyz - _WorldSpaceCameraPos.xyz);
-	float d = 1 - saturate(abs(dot(N, L)));
-	d = pow(d, rimPower);
-	return d;
-}
-
 //グレースケール
 float GrayScale(fixed3 color){
     return color.r*0.6f+color.g*0.1f+color.b*0.1f;
@@ -32,7 +21,6 @@ float3 colorPalette( float t,  float3 a,  float3 b,  float3 c,float3 d) {
 float ScreenRatio(){
     return _ScreenParams.x/_ScreenParams.y;
 }
-
 
 //0.0～yの値に収まる数値を返す
 float mod(float x, float y) {
@@ -133,8 +121,44 @@ float CulcWave(int powNum,float x,float waveLength){
 
 //極座標変換
 void PolarCoordinates(float2 uv,float2 center,float radialScale,float lengthScale,out float2 Out){
-    float2 delta = uv-center;
+    float2 delta = uv - center;
     float radius = length(delta) * 2 * radialScale;
     float angle = atan2(delta.x , delta.y) * 1.0 / 6.28 * lengthScale;
     Out = float2(radius,angle);
+}
+
+//フローマップ
+fixed4 FlowMap(sampler2D flowMap,sampler2D mainTex,float2 flowuv ,float2 uv,float flowSpeed,float intensity)
+{
+    float2 flow_Texture =flowuv;
+	flow_Texture *= 2;      
+	flow_Texture -= 1;
+	flow_Texture *= -1;
+
+	float time = _Time.x * flowSpeed;
+	float time_fmod = fmod(time, 1);
+
+	float time_A = time + 0.5;
+	time_A = fmod(time_A, 1);
+
+	//-----------------------------------------------------
+
+	float2 flow_Texture1 = flow_Texture * time_fmod;
+	float2 flow_Texture2 = flow_Texture * time_A;
+
+	flow_Texture1 *= intensity;
+	flow_Texture2 *= intensity;
+	time_fmod *= 2;
+
+	float2 uv1 = uv + flow_Texture1;
+	float2 uv2 = uv + flow_Texture2;
+	time_fmod -= 1;
+
+	time_fmod = abs(time_fmod);
+	fixed4 col1 = tex2D(mainTex, uv1);
+	fixed4 col2 = tex2D(mainTex, uv2);
+
+	fixed4 color = lerp(col1, col2, time_fmod);
+	color.a = color.r;
+    return color;
 }
