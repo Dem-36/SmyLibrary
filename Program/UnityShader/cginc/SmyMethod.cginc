@@ -127,10 +127,9 @@ void PolarCoordinates(float2 uv,float2 center,float radialScale,float lengthScal
     Out = float2(radius,angle);
 }
 
-//フローマップ
-fixed4 FlowMap(sampler2D flowMap,sampler2D mainTex,float2 flowuv ,float2 uv,float flowSpeed,float intensity)
+fixed4 FlowMap(sampler2D flowMap,sampler2D mainTex,float2 uv,float flowSpeed,float intensity)
 {
-    float2 flow_Texture =flowuv;
+    float2 flow_Texture = tex2D(flowMap,uv).rg;
 	flow_Texture *= 2;      
 	flow_Texture -= 1;
 	flow_Texture *= -1;
